@@ -25,8 +25,8 @@ const pool = new Pool({
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
 });
 
-// Create table if it doesn't exist
-const initDB = async () => {
+// Create table if it doesn't exist with retry logic
+const initDB = async (retries = 5, delay = 2000) => {
   console.log('Attempting to connect to database...');
   console.log('DB_HOST:', process.env.DB_HOST);
   console.log('DB_USER:', process.env.DB_USER);
@@ -34,24 +34,33 @@ const initDB = async () => {
   console.log('DB_PORT:', process.env.DB_PORT);
   console.log('DB_SSL:', process.env.DB_SSL);
   
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS todos (
-        id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
-        completed BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    console.log('✅ Database initialized successfully');
-  } catch (err) {
-    console.error('❌ Database initialization failed:', err.message);
-    throw err;
+  for (let i = 0; i < retries; i++) {
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS todos (
+          id SERIAL PRIMARY KEY,
+          title TEXT NOT NULL,
+          completed BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      console.log('✅ Database initialized successfully');
+      return;
+    } catch (err) {
+      if (i < retries - 1) {
+        console.log(`⏳ Database not ready, retrying in ${delay/1000}s... (attempt ${i+1}/${retries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.error('❌ Database initialization failed after', retries, 'attempts:', err.message);
+        throw err;
+      }
+    }
   }
 };
 
 initDB().catch(err => {
   console.error('Fatal error - database connection failed:', err.message);
+  process.exit(1);
 });
 
 // Health check

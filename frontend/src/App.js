@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-// just for git push
-const API_URL = process.env.REACT_APP_API_URL || 'https://be-todo-02230284.onrender.com';
+// Backend API URL - uses environment variable or defaults to localhost for development
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 export default function App() {
   const [todos, setTodos] = useState([]);
