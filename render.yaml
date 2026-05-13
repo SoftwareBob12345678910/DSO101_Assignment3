@@ -1,0 +1,45 @@
+# Render Blueprint Configuration for Multi-Service Todo App Deployment
+# This file enables automated deployment on every git commit push
+# Documentation: https://render.com/docs/blueprint-spec
+
+services:
+  # Backend Service - Node.js/Express API
+  - type: web
+    name: be-todo
+    env: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      # Database configuration - Render PostgreSQL
+      - key: DB_HOST
+        value: dpg-d6tr7nvgi27c73dsbnig-a
+      - key: DB_USER
+        value: to_do_database_k8c2_user
+      - key: DB_PASSWORD
+        value: DkRhrfeRnyYoyDGTxSQi2l0jwk4LyEmn
+      - key: DB_NAME
+        value: to_do_database_k8c2
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_SSL
+        value: "true"
+      - key: PORT
+        value: "5000"
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /
+    autoDeploy: true
+
+  # Frontend Service - React App served by Nginx
+  - type: web
+    name: fe-todo
+    env: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://be-todo.onrender.com
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /
+    autoDeploy: true
