@@ -32,7 +32,12 @@ jobs:
           docker build -f frontend/Dockerfile -t ${{ secrets.DOCKERHUB_USERNAME }}/todo-frontend:latest .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/todo-frontend:latest
 
-      # 5. Trigger Render Deployment
-      - name: Trigger Render Deployment
+      # 5. Trigger Render Frontend Deployment
+      - name: Trigger Render Frontend Deployment
         run: |
-          curl -X POST ${{ secrets.RENDER_DEPLOY_WEBHOOK_URL }}
+          curl -X POST ${{ secrets.RENDER_FRONTEND_WEBHOOK_URL }}
+
+      # 6. Trigger Render Backend Deployment
+      - name: Trigger Render Backend Deployment
+        run: |
+          curl -X POST ${{ secrets.RENDER_BACKEND_WEBHOOK_URL }}
